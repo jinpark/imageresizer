@@ -1,5 +1,8 @@
 # jinageresizer (image resizer by jin)
 
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
+
 jinageresizer is a image resizing service using flask and imagemagick inspired by [firesize](firesize.com)
 
 
@@ -16,4 +19,3 @@ TO DO
 
   * Add cropping (with gravity)
   * Move to asyncio or gevent
-  * Add `deploy to heroku` button
