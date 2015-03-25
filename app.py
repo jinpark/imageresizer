@@ -1,4 +1,4 @@
-from flask import Flask, send_file, request, abort, jsonify
+from flask import Flask, send_file, request, abort, jsonify, send_from_directory
 import requests
 from StringIO import StringIO
 from wand.image import Image
@@ -6,8 +6,20 @@ from urlparse import urlparse
 from tempfile import NamedTemporaryFile
 from shutil import copyfileobj
 import os
+import logging
 
 app = Flask(__name__)
+stream_handler = logging.StreamHandler()
+app.logger.addHandler(stream_handler)
+app.logger.setLevel(logging.INFO)
+app.logger.info('jinageresizer startup')
+
+@app.route('/favicon.ico/')
+def favicon():
+    app.logger.info('in favicon')
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/png')
+
 
 @app.route('/<path:url>/')
 def convert(url):
@@ -16,7 +28,7 @@ def convert(url):
         r = requests.get(url)
         filename, file_ext = os.path.splitext(os.path.basename(urlparse(url).path))
     except:
-        raise
+        app.logger.exception("Error while getting url: " + url)
         abort(400)
     try:
         with Image(file=StringIO(r.content)) as img:
@@ -49,6 +61,7 @@ def convert(url):
             response = send_file(temp_file, mimetype='image/' + img.format)
             return response
     except:
+        app.logger.exception("Error while getting image for wand")
         abort(500)
 
 
@@ -62,7 +75,6 @@ def convert(url):
 #     """
 #     img.transform("{}x{}".format(width,height))
 
-
 @app.errorhandler(400)
 def bad_request(bad_var_name, error=None):
     message = {
@@ -72,6 +84,10 @@ def bad_request(bad_var_name, error=None):
     resp = jsonify(message)
     resp.status_code = 400
     return resp
+
+@app.route('/health')
+def health_check():
+    return jsonify({'health': 'ok', 'commit_hash': os.environ.get('COMMIT_HASH')})
 
 
 if __name__ == '__main__':
