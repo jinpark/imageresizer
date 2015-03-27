@@ -1,10 +1,12 @@
-from flask import Flask, send_file, request, abort, jsonify, send_from_directory
+from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response
 import requests
 from StringIO import StringIO
 from wand.image import Image
 from urlparse import urlparse
 from tempfile import NamedTemporaryFile
 from shutil import copyfileobj
+from functools import wraps, update_wrapper
+from datetime import datetime
 import os
 import logging
 
@@ -14,11 +16,25 @@ app.logger.addHandler(stream_handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('jinageresizer startup')
 
+def nocache(view):
+    """
+    no cache decorator. used for health check
+    """
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Last-Modified'] = datetime.now()
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+
+    return update_wrapper(no_cache, view)
+
 @app.route('/favicon.ico/')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/png')
-
 
 @app.route('/<path:url>/')
 def convert(url):
@@ -48,7 +64,7 @@ def convert(url):
                 try:
                     resize_height = int(query_string['rheight'])
                 except:
-                    
+
                     bad_request('rheight')
             else:
                 resize_height = None
@@ -79,6 +95,13 @@ def convert(url):
 #     """
 #     img.transform("{}x{}".format(width,height))
 
+
+@app.route('/health')
+@nocache
+def health_check():
+    return jsonify({'health': 'ok', 'commit_hash': os.environ.get('COMMIT_HASH')})
+
+
 @app.errorhandler(400)
 def bad_request(bad_var_name, error=None):
     message = {
@@ -88,11 +111,6 @@ def bad_request(bad_var_name, error=None):
     resp = jsonify(message)
     resp.status_code = 400
     return resp
-
-@app.route('/health')
-def health_check():
-    return jsonify({'health': 'ok', 'commit_hash': os.environ.get('COMMIT_HASH')})
-
 
 if __name__ == '__main__':
     app.run(debug=True)
