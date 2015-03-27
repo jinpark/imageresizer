@@ -16,7 +16,6 @@ app.logger.info('jinageresizer startup')
 
 @app.route('/favicon.ico/')
 def favicon():
-    app.logger.info('in favicon')
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/png')
 
@@ -25,8 +24,11 @@ def favicon():
 def convert(url):
     query_string = request.args
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=1)
         filename, file_ext = os.path.splitext(os.path.basename(urlparse(url).path))
+        if 'image' not in r.headers['content-type']:
+            app.logger.error(url + " is not an image.")
+            abort(400)
     except:
         app.logger.exception("Error while getting url: " + url)
         abort(400)
@@ -38,6 +40,7 @@ def convert(url):
                 try:
                     resize_width = int(query_string['rwidth'])
                 except:
+                    app.logger.exception("rwidth is invalid: " + query_string['rwidth'])
                     bad_request('rwidth')
             else:
                 resize_width = None
@@ -45,6 +48,7 @@ def convert(url):
                 try:
                     resize_height = int(query_string['rheight'])
                 except:
+                    
                     bad_request('rheight')
             else:
                 resize_height = None
@@ -58,7 +62,7 @@ def convert(url):
             temp_file = NamedTemporaryFile(mode='w+b',suffix=img.format)
             img.save(file=temp_file)
             temp_file.seek(0,0)
-            response = send_file(temp_file, mimetype='image/' + img.format)
+            response = send_file(temp_file, mimetype=img.mimetype)
             return response
     except:
         app.logger.exception("Error while getting image for wand")
