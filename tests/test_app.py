@@ -25,13 +25,6 @@ class TestImageResizer(unittest.TestCase):
     def setUp(self):
         self.app = app.app.test_client()
 
-    def test_entry(self):
-        expected_image = open('tests/images/50x200.jpeg').read()
-
-        rv = self.app.get('/http://placekitten.com/g/50/200/', follow_redirects=True)
-        rv_image_string = rv.data
-        self.assertEqual(rv.data, expected_image)
-
     def test_resize_width(self):
         expected_image = open('tests/images/50x200.jpeg').read()
 
