@@ -15,7 +15,7 @@ def get_stub(*args, **kwargs):
     response = requests.get.return_value
     with open('tests/images/50x200_pre.jpeg', 'r') as f:
         response.content = f.read()
-        response.headers = {'content-type': 'image/png'}
+        response.headers = {'content-type': 'image/jpeg'}
         return response
 
 requests.get = MagicMock(side_effect=get_stub)
