@@ -1,5 +1,4 @@
 from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response
-import requests
 from StringIO import StringIO
 from wand.image import Image
 from urlparse import urlparse
@@ -7,8 +6,11 @@ from tempfile import NamedTemporaryFile
 from shutil import copyfileobj
 from functools import wraps, update_wrapper
 from datetime import datetime
+import requests
 import os
 import logging
+
+# from gevent import monkey; monkey.patch_all()
 
 app = Flask(__name__)
 stream_handler = logging.StreamHandler()
