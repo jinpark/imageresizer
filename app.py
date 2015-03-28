@@ -10,7 +10,7 @@ import requests
 import os
 import logging
 
-# from gevent import monkey; monkey.patch_all()
+from gevent import monkey; monkey.patch_all()
 
 app = Flask(__name__)
 stream_handler = logging.StreamHandler()

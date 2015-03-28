@@ -1,6 +1,6 @@
 # jinageresizer (image resizer by jin)
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+[![Build Status](https://travis-ci.org/jinpark/imageresizer.svg?branch=master)](https://travis-ci.org/jinpark/imageresizer) [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
 
 jinageresizer is a image resizing service using flask, imagemagick and [wand](http://docs.wand-py.org/en/0.4.0/) inspired by [firesize](http://firesize.com)
@@ -22,4 +22,3 @@ TO DO
 -----
 
   * Add cropping (with gravity)
-  * Move to asyncio or gevent
