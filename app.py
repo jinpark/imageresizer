@@ -1,4 +1,4 @@
-from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response
+from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response, redirect
 from StringIO import StringIO
 from wand.image import Image
 from urlparse import urlparse
@@ -32,6 +32,10 @@ def nocache(view):
         return response
 
     return update_wrapper(no_cache, view)
+
+@app.route('/')
+def home():
+    return redirect("https://github.com/jinpark/imageresizer")
 
 @app.route('/favicon.ico/')
 def favicon():
