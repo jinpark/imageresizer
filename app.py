@@ -39,6 +39,9 @@ def home():
 
 @app.route('/favicon.ico/')
 def favicon():
+    """
+    I hate favicons. ugh
+    """
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/png')
 
@@ -70,7 +73,6 @@ def convert(url):
                 try:
                     resize_height = int(query_string['rheight'])
                 except:
-
                     bad_request('rheight')
             else:
                 resize_height = None
@@ -79,7 +81,7 @@ def convert(url):
             if resize_width and not resize_height:
                 img.transform(resize=str(resize_width))
             if resize_height and not resize_width:
-                img.transform(resize='x' + resize_height)
+                img.transform(resize='x' + str(resize_height))
 
             temp_file = NamedTemporaryFile(mode='w+b',suffix=img.format)
             img.save(file=temp_file)
