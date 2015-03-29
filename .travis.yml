@@ -9,5 +9,5 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   - "python tests/test_app.py"
-  - "coverage run --source=app python tests/test_app.py"
+  - "coverage run --source=app tests/test_app.py"
 after_success: coveralls
