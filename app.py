@@ -1,4 +1,4 @@
-from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response, redirect
+from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response, redirect, current_app
 from StringIO import StringIO
 from wand.image import Image
 from urlparse import urlparse
@@ -33,6 +33,19 @@ def nocache(view):
 
     return update_wrapper(no_cache, view)
 
+def ssl_required(fn):
+    @wraps(fn)
+    def decorated_view(*args, **kwargs):
+        if current_app.config.get("SSL"):
+            if request.is_secure:
+                return fn(*args, **kwargs)
+            else:
+                return redirect(request.url.replace("http://", "https://"))
+
+        return fn(*args, **kwargs)
+
+    return decorated_view
+
 @app.route('/')
 def home():
     return redirect("https://github.com/jinpark/imageresizer")
@@ -46,6 +59,7 @@ def favicon():
                                'favicon.ico', mimetype='image/png')
 
 @app.route('/<path:url>/')
+@ssl_required
 def convert(url):
     query_string = request.args
     try:
@@ -107,6 +121,7 @@ def convert(url):
 
 @app.route('/health/')
 @nocache
+@ssl_required
 def health_check():
     return jsonify({'health': 'ok', 'commit_hash': os.environ.get('COMMIT_HASH')})
 
@@ -122,4 +137,4 @@ def bad_request(bad_var_name="", error=None):
     return resp
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
