@@ -1,13 +1,18 @@
 language: python
 python:
-  - "2.7"
-  - "2.6"
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+- '2.7'
+- '2.6'
 install:
-  - "pip install -r requirements.txt"
-  - "pip install coveralls"
-# command to run tests, e.g. python setup.py test
+- pip install -r requirements.txt
+- pip install coveralls
 script:
-  - "python tests/test_app.py"
-  - "coverage run --source=app tests/test_app.py"
+- python tests/test_app.py
+- coverage run --source=app tests/test_app.py
 after_success: coveralls
+deploy:
+  provider: heroku
+  api_key:
+    secure: fyrf8wiem3hBA0iO+Iw7VmuiszeayriBIEXMSCYYVJpBzaSh7EgvyMf5hi5dQZdLP7tHWMlt5sl4EyQ8JhjFvafFddLG4OH3rwm5JMJyhSvOmuH7J0DJbTjlYCEP2iCUt+nhZTxUvMjYsWwPOBNM1H4zxAg61vfva1kHG+DxwrU=
+  app: jimageboss
+  on:
+    repo: jinpark/imageresizer
