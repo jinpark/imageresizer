@@ -104,7 +104,7 @@ def convert(url):
 #     img.transform("{}x{}".format(width,height))
 
 
-@app.route('/health')
+@app.route('/health/')
 @nocache
 def health_check():
     return jsonify({'health': 'ok', 'commit_hash': os.environ.get('COMMIT_HASH')})
