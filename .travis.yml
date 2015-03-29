@@ -9,6 +9,7 @@ script:
 - coverage run --source=app tests/test_app.py
 after_success: coveralls
 before_deploy:
+  - gem install heroku
   - commitHash=`git rev-parse HEAD`
   - heroku config:set $COMMIT_HASH=$commitHash --app jimageboss
 deploy:
