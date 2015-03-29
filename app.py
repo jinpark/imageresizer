@@ -116,7 +116,7 @@ def bad_request(bad_var_name="", error=None):
         bad_var_name = ""
     message = {
             'status': 400,
-            'message': 'Bad request: {} is not valid'.format(bad_var_name),
+            'message': 'Bad request: {0} is not valid'.format(bad_var_name),
     }
     resp = jsonify(message)
     resp.status_code = 400
