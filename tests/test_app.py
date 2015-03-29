@@ -16,10 +16,21 @@ import app
 
 def requests_stub(*args, **kwargs):
     response = requests.get.return_value
-    with open('tests/images/50x200_pre.jpeg', 'r') as f:
-        response.content = f.read()
+    if args[0] == "http://badrequest.com/g/50/200":
+        raise
+    elif args[0] == "http://notanimage.com/g/50/200":
+        response.content = "thisisavideo"
+        response.headers = {'content-type': 'video/avi'}
+        return response
+    elif args[0] == "http://badimage.com/g/50/200":
+        response.content = "this is some bad image data"
         response.headers = {'content-type': 'image/jpeg'}
         return response
+    else:
+        with open('tests/images/50x200_pre.jpeg', 'r') as f:
+            response.content = f.read()
+            response.headers = {'content-type': 'image/jpeg'}
+            return response
 
 requests.get = MagicMock(side_effect=requests_stub)
 
@@ -49,6 +60,18 @@ class TestImageResizer(unittest.TestCase):
         rv = self.app.get('/http://placekitten.com/g/50/200/?type=png', follow_redirects=True)
         with Image(file=StringIO(rv.data)) as img:
             self.assertEqual(img.mimetype, "image/png")
+
+    def test_bad_request(self):
+        rv = self.app.get('/http://badrequest.com/g/50/200/?rwidth=100', follow_redirects=True)
+        self.assertEqual(rv.status, "400 BAD REQUEST")
+
+    def test_not_an_image(self):
+        rv = self.app.get('/http://notanimage.com/g/50/200/?rwidth=100', follow_redirects=True)
+        self.assertEqual(rv.status, "400 BAD REQUEST")
+
+    def test_bad_image(self):
+        rv = self.app.get('/http://badimage.com/g/50/200/?rwidth=100', follow_redirects=True)
+        self.assertEqual(rv.status, "500 INTERNAL SERVER ERROR")
 
 class TestImageResizerSide(unittest.TestCase):
     def setUp(self):
