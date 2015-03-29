@@ -1,7 +1,6 @@
 language: python
 python:
 - '2.7'
-- '2.6'
 install:
 - pip install -r requirements.txt
 - pip install coveralls
@@ -9,6 +8,9 @@ script:
 - python tests/test_app.py
 - coverage run --source=app tests/test_app.py
 after_success: coveralls
+before_deploy:
+  - commitHash=`git rev-parse HEAD`
+  - heroku config:set $COMMIT_HASH=$commitHash --app jimageboss
 deploy:
   provider: heroku
   api_key:
