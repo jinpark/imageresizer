@@ -66,14 +66,15 @@ def convert(url):
                     resize_width = int(query_string['rwidth'])
                 except:
                     app.logger.exception("rwidth is invalid: " + query_string['rwidth'])
-                    bad_request(bad_var_name='rwidth')
+                    return bad_request(bad_var_name='rwidth')
             else:
                 resize_width = None
             if 'rheight' in query_string.keys():
                 try:
                     resize_height = int(query_string['rheight'])
                 except:
-                    bad_request(bad_var_name='rheight')
+                    app.logger.exception("rheight is invalid: " + query_string['rheight'])
+                    return bad_request(bad_var_name='rheight')
             else:
                 resize_height = None
             if resize_width and resize_height:
@@ -112,8 +113,6 @@ def health_check():
 
 @app.errorhandler(400)
 def bad_request(bad_var_name="", error=None):
-    if not bad_var_name:
-        bad_var_name = ""
     message = {
             'status': 400,
             'message': 'Bad request: {0} is not valid'.format(bad_var_name),
