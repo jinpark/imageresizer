@@ -19,7 +19,7 @@ def requests_stub(*args, **kwargs):
     if args[0] == "http://badrequest.com/g/50/200":
         raise
     elif args[0] == "http://notanimage.com/g/50/200":
-        response.content = "thisisavideo"
+        response.content = "thisisavideonotanimage"
         response.headers = {'content-type': 'video/avi'}
         return response
     elif args[0] == "http://badimage.com/g/50/200":
@@ -34,54 +34,54 @@ def requests_stub(*args, **kwargs):
 
 requests.get = MagicMock(side_effect=requests_stub)
 
-class TestImageResizer(unittest.TestCase):
+class TestImageResizerImageEdits(unittest.TestCase):
     def setUp(self):
         self.app = app.app.test_client()
 
     def test_resize_width(self):
-        rv = self.app.get('/http://placekitten.com/g/50/200/?rwidth=100', follow_redirects=True)
+        rv = self.app.get('/http://placekitten.com/g/50/200/?rwidth=100')
         with Image(file=StringIO(rv.data)) as img:
             self.assertEqual(img.width, 100)
             self.assertEqual(img.height, 400)
 
     def test_resize_height(self):
-        rv = self.app.get('/http://placekitten.com/g/50/200/?rheight=100', follow_redirects=True)
+        rv = self.app.get('/http://placekitten.com/g/50/200/?rheight=100')
         with Image(file=StringIO(rv.data)) as img:
             self.assertEqual(img.width, 25)
             self.assertEqual(img.height, 100)
 
     def test_resize_width_and_height(self):
-        rv = self.app.get('/http://placekitten.com/g/50/200/?rheight=100&rwidth=100', follow_redirects=True)
+        rv = self.app.get('/http://placekitten.com/g/50/200/?rheight=100&rwidth=100')
         with Image(file=StringIO(rv.data)) as img:
             self.assertEqual(img.width, 100)
             self.assertEqual(img.height, 100)
 
     def test_convert_type(self):
-        rv = self.app.get('/http://placekitten.com/g/50/200/?type=png', follow_redirects=True)
+        rv = self.app.get('/http://placekitten.com/g/50/200/?type=png')
         with Image(file=StringIO(rv.data)) as img:
             self.assertEqual(img.mimetype, "image/png")
 
     def test_bad_request(self):
-        rv = self.app.get('/http://badrequest.com/g/50/200/?rwidth=100', follow_redirects=True)
+        rv = self.app.get('/http://badrequest.com/g/50/200/?rwidth=100')
         self.assertEqual(rv.status, "400 BAD REQUEST")
 
     def test_not_an_image(self):
-        rv = self.app.get('/http://notanimage.com/g/50/200/?rwidth=100', follow_redirects=True)
+        rv = self.app.get('/http://notanimage.com/g/50/200/?rwidth=100')
         self.assertEqual(rv.status, "400 BAD REQUEST")
 
     def test_bad_image(self):
-        rv = self.app.get('/http://badimage.com/g/50/200/?rwidth=100', follow_redirects=True)
+        rv = self.app.get('/http://badimage.com/g/50/200/?rwidth=100')
         self.assertEqual(rv.status, "500 INTERNAL SERVER ERROR")
 
     def test_bad_width(self):
-        rv = self.app.get('/http://placekitten.com/g/50/200/?rwidth=cat', follow_redirects=True)
+        rv = self.app.get('/http://placekitten.com/g/50/200/?rwidth=cat')
         self.assertEqual(rv.status, "400 BAD REQUEST")
 
     def test_bad_height(self):
-        rv = self.app.get('/http://placekitten.com/g/50/200/?rheight=cat', follow_redirects=True)
+        rv = self.app.get('/http://placekitten.com/g/50/200/?rheight=cat')
         self.assertEqual(rv.status, "400 BAD REQUEST")
 
-class TestImageResizerSide(unittest.TestCase):
+class TestImageResizerExtras(unittest.TestCase):
     def setUp(self):
         self.app = app.app.test_client()
 

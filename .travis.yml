@@ -15,6 +15,3 @@ deploy:
   app: jimageboss
   on:
     repo: jinpark/imageresizer
-  run:
-    - "commitHash=`git rev-parse HEAD`"
-    - "heroku config:set $COMMIT_HASH=$commitHash --app jimageboss"
