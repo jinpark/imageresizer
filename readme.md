@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/jinpark/imageresizer.svg?branch=master)](https://travis-ci.org/jinpark/imageresizer)
 [![Coverage Status](https://coveralls.io/repos/jinpark/imageresizer/badge.svg?branch=master)](https://coveralls.io/r/jinpark/imageresizer?branch=master)
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jinpark/imageresizer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 
 jinageresizer is a image resizing service using flask, imagemagick and [wand](http://docs.wand-py.org/en/0.4.0/) inspired by [firesize](http://firesize.com)

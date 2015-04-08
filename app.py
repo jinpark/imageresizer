@@ -59,7 +59,7 @@ def convert(url):
         abort(400)
     try:
         with Image(file=StringIO(r.content)) as img:
-            if 'type' in query_string.keys() and query_string['type'] in ['jpeg', 'jpg', 'png']:
+            if 'type' in query_string.keys() and query_string['type'] in ['jpeg', 'jpg', 'png', 'pjeg']:
                 img.format = query_string['type']
             if 'rwidth' in query_string.keys():
                 try:
@@ -85,10 +85,14 @@ def convert(url):
                 img.transform(resize='x' + str(resize_height))
 
             temp_file = NamedTemporaryFile(mode='w+b',suffix=img.format)
-            img.save(file=temp_file)
-            temp_file.seek(0,0)
-            response = send_file(temp_file, mimetype=img.mimetype)
-            return response
+            try:
+                img.save(file=temp_file)
+                temp_file.seek(0,0)
+                response = send_file(temp_file, mimetype=img.mimetype)
+                return response
+            finally:
+                # temp_file.close()
+                print 'cat'
     except:
         app.logger.exception("Error while getting image for wand")
         abort(500)
