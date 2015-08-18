@@ -1,6 +1,6 @@
 from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response, redirect, current_app
 from StringIO import StringIO
-from wand.image import Image
+from wand.image import Image, GRAVITY_TYPES
 from urlparse import urlparse
 from tempfile import NamedTemporaryFile
 from shutil import copyfileobj
@@ -59,30 +59,16 @@ def convert(url):
         abort(400)
     try:
         with Image(file=StringIO(r.content)) as img:
-            if 'type' in query_string.keys() and query_string['type'] in ['jpeg', 'jpg', 'png', 'pjeg']:
-                img.format = query_string['type']
-            if 'rwidth' in query_string.keys():
-                try:
-                    resize_width = int(query_string['rwidth'])
-                except:
-                    app.logger.exception("rwidth is invalid: " + query_string['rwidth'])
-                    return bad_request(bad_var_name='rwidth')
-            else:
-                resize_width = None
-            if 'rheight' in query_string.keys():
-                try:
-                    resize_height = int(query_string['rheight'])
-                except:
-                    app.logger.exception("rheight is invalid: " + query_string['rheight'])
-                    return bad_request(bad_var_name='rheight')
-            else:
-                resize_height = None
-            if resize_width and resize_height:
-                img.resize(resize_width, resize_height)
-            if resize_width and not resize_height:
-                img.transform(resize=str(resize_width))
-            if resize_height and not resize_width:
-                img.transform(resize='x' + str(resize_height))
+            if query_string.get('type') in ['jpeg', 'jpg', 'png', 'pjeg']:
+                img.format = query_string.get('type')
+
+            img = resize(img, query_string.get('rwidth'), query_string.get('rheight'))
+
+            if 'cwidth' and 'cheight' in query_string.keys():
+                if 'gravity' in query_string.keys() and query_string['gravity'].lower() in GRAVITY_TYPES:
+                    img.crop(width=int(query_string['cwidth']), height=int(query_string['cheight']), gravity=query_string['gravity'])
+                else:
+                    img.crop(width=int(query_string['cwidth']), height=int(query_string['cheight']))
 
             temp_file = NamedTemporaryFile(mode='w+b',suffix=img.format)
             try:
@@ -96,6 +82,31 @@ def convert(url):
     except:
         app.logger.exception("Error while getting image for wand")
         abort(500)
+
+
+def resize(img, width=None, height=None):
+    if not width and not height:
+        return img
+    if width:
+        try:
+            width = int(width)
+        except:
+            app.logger.exception("rwidth is invalid: " + width)
+            return bad_request(bad_var_name='width')
+    if height:
+        try:
+            height = int(height)
+        except:
+            app.logger.exception("rheight is invalid: " + height)
+            return bad_request(bad_var_name='rheight')
+    if width and height:
+        img.resize(width, height)
+    if width and not height:
+        img.transform(resize=str(width))
+    if height and not width:
+        img.transform(resize='x' + str(height))
+
+    return img
 
 
 # on hold until I can figure out gravity
