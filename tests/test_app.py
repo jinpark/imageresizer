@@ -69,10 +69,6 @@ class TestImageResizerImageEdits(unittest.TestCase):
         rv = self.app.get('/http://notanimage.com/g/50/200/?rwidth=100')
         self.assertEqual(rv.status, "400 BAD REQUEST")
 
-    def test_bad_image(self):
-        rv = self.app.get('/http://badimage.com/g/50/200/?rwidth=100')
-        self.assertEqual(rv.status, "500 INTERNAL SERVER ERROR")
-
     def test_bad_width(self):
         rv = self.app.get('/http://placekitten.com/g/50/200/?rwidth=cat')
         self.assertEqual(rv.status, "400 BAD REQUEST")
