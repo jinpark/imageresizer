@@ -1,6 +1,7 @@
 from flask import Flask, send_file, request, abort, jsonify, send_from_directory, make_response, redirect, current_app
 from StringIO import StringIO
-from wand.image import Image
+from wand.image import Image, GRAVITY_TYPES
+from wand.exceptions import MissingDelegateError
 from urlparse import urlparse
 from tempfile import NamedTemporaryFile
 from shutil import copyfileobj
@@ -17,6 +18,11 @@ stream_handler = logging.StreamHandler()
 app.logger.addHandler(stream_handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('jinageresizer startup')
+
+@app.errorhandler(400)
+def custom400(error):
+    response = jsonify({'message': error.description})
+    return response, 400
 
 def nocache(view):
     """
@@ -53,77 +59,72 @@ def convert(url):
         filename, file_ext = os.path.splitext(os.path.basename(urlparse(url).path))
         if 'image' not in r.headers['content-type']:
             app.logger.error(url + " is not an image.")
-            abort(400)
+            abort(400, url + " is not an image.")
     except:
         app.logger.exception("Error while getting url: " + url)
-        abort(400)
+        abort(400, "Error while getting url: " + url)
     try:
         with Image(file=StringIO(r.content)) as img:
-            if 'type' in query_string.keys() and query_string['type'] in ['jpeg', 'jpg', 'png', 'pjeg']:
-                img.format = query_string['type']
-            if 'rwidth' in query_string.keys():
-                try:
-                    resize_width = int(query_string['rwidth'])
-                except:
-                    app.logger.exception("rwidth is invalid: " + query_string['rwidth'])
-                    return bad_request(bad_var_name='rwidth')
-            else:
-                resize_width = None
-            if 'rheight' in query_string.keys():
-                try:
-                    resize_height = int(query_string['rheight'])
-                except:
-                    app.logger.exception("rheight is invalid: " + query_string['rheight'])
-                    return bad_request(bad_var_name='rheight')
-            else:
-                resize_height = None
-            if resize_width and resize_height:
-                img.resize(resize_width, resize_height)
-            if resize_width and not resize_height:
-                img.transform(resize=str(resize_width))
-            if resize_height and not resize_width:
-                img.transform(resize='x' + str(resize_height))
+            if query_string.get('type') in ['jpeg', 'jpg', 'png', 'pjeg']:
+                img.format = query_string.get('type')
+
+            img = resize(img, query_string.get('rwidth'), query_string.get('rheight'))
+
+            img = crop(img, query_string.get('cwidth'), query_string.get('cheight'), query_string.get('gravity'))
 
             temp_file = NamedTemporaryFile(mode='w+b',suffix=img.format)
+            img.save(file=temp_file)
+            temp_file.seek(0,0)
+            response = send_file(temp_file, mimetype=img.mimetype)
+            return response
+    except MissingDelegateError:
+        abort(400, 'Image is unusable')
+
+
+
+
+def resize(img, width=None, height=None):
+    if not width and not height:
+        return img
+    if width:
+        try:
+            width = int(width)
+        except ValueError:
+            app.logger.exception("rwidth is invalid: " + width)
+            abort(400, "rwidth is invalid: " + width)
+    if height:
+        try:
+            height = int(height)
+        except ValueError:
+            app.logger.exception("rheight is invalid: " + height)
+            abort(400, "rheight is invalid: " + height)
+    if width and height:
+        img.resize(width, height)
+    if width and not height:
+        img.transform(resize=str(width))
+    if height and not width:
+        img.transform(resize='x' + str(height))
+
+    return img
+
+def crop(img, width=None, height=None, gravity='north_west'):
+    if not width and not height:
+        return img
+    if width and height:
             try:
-                img.save(file=temp_file)
-                temp_file.seek(0,0)
-                response = send_file(temp_file, mimetype=img.mimetype)
-                return response
-            finally:
-                # temp_file.close()
-                print 'cat'
-    except:
-        app.logger.exception("Error while getting image for wand")
-        abort(500)
-
-
-# on hold until I can figure out gravity
-# def crop(img, width, height):
-#     """
-#     Crops image based on left, top, bottom, right pixel sizes.
-#     Default gravity is center. Options are center, north, north_east, ...
-#     View http://docs.wand-py.org/en/latest/wand/image.html#wand.image.BaseImage.crop
-#     for more details
-#     """
-#     img.transform("{}x{}".format(width,height))
+                img.crop(width=int(width), height=int(height), gravity=gravity)
+            except ValueError:
+                app.logger.exception("cheight: {0} or cwidth: {1} is invalid.".format(height, width))
+                abort(400, "cheight: {0} or cwidth: {1} is invalid.".format(height, width))
+    if (width and not height) or (not width and height): # xor!
+        abort(400, "cheight or cwidth is missing. Both are required for cropping.")
+    return img
 
 
 @app.route('/health/')
 @nocache
 def health_check():
     return jsonify({'health': 'ok', 'commit_hash': os.environ.get('COMMIT_HASH')})
-
-
-@app.errorhandler(400)
-def bad_request(bad_var_name="", error=None):
-    message = {
-            'status': 400,
-            'message': 'Bad request: {0} is not valid'.format(bad_var_name),
-    }
-    resp = jsonify(message)
-    resp.status_code = 400
-    return resp
 
 if __name__ == '__main__':
     app.run()
