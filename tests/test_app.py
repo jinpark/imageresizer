@@ -89,7 +89,15 @@ class TestImageResizerImageEdits(unittest.TestCase):
 
     def test_crop_only_height(self):
         rv = self.app.get('/http://placekitten.com/g/50/200/?cheight=100')
-        self.assertEqual(rv.status, "400 BAD REQUEST")
+        with Image(file=StringIO(rv.data)) as img:
+            self.assertEqual(img.width, 50)
+            self.assertEqual(img.height, 100)
+
+    def test_crop_only_width(self):
+        rv = self.app.get('/http://placekitten.com/g/50/200/?cwidth=25')
+        with Image(file=StringIO(rv.data)) as img:
+            self.assertEqual(img.width, 25)
+            self.assertEqual(img.height, 200)
 
 class TestImageResizerExtras(unittest.TestCase):
     def setUp(self):

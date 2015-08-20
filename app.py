@@ -110,14 +110,17 @@ def resize(img, width=None, height=None):
 def crop(img, width=None, height=None, gravity='north_west'):
     if not width and not height:
         return img
-    if width and height:
-            try:
-                img.crop(width=int(width), height=int(height), gravity=gravity)
-            except ValueError:
-                app.logger.exception("cheight: {0} or cwidth: {1} is invalid.".format(height, width))
-                abort(400, "cheight: {0} or cwidth: {1} is invalid.".format(height, width))
-    if (width and not height) or (not width and height): # xor!
-        abort(400, "cheight or cwidth is missing. Both are required for cropping.")
+    elif width and not height:
+        height = img.height
+    elif not width and height:
+        width = img.width
+
+    try:
+        img.crop(width=int(width), height=int(height), gravity=gravity)
+    except ValueError:
+        app.logger.exception("cheight: {0} or cwidth: {1} is invalid.".format(height, width))
+        abort(400, "cheight: {0} or cwidth: {1} is invalid.".format(height, width))
+
     return img
 
 
