@@ -62,7 +62,7 @@ def convert(url):
             abort(400, url + " is not an image.")
     except:
         app.logger.exception("Error while getting url: " + url)
-        abort(400, "Error while getting url: " + url)
+        abort(500, "Error while getting url: " + url)
     try:
         with Image(file=StringIO(r.content)) as img:
             if query_string.get('type') in ['jpeg', 'jpg', 'png', 'pjeg']:
