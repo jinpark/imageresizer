@@ -109,7 +109,7 @@ class TestImageResizerExtras(unittest.TestCase):
 
     def test_health_check(self):
         rv = self.app.get('/health/')
-        self.assertEqual(rv.data, '{\n  "commit_hash": null, \n  "health": "ok"\n}')
+        self.assertEqual(rv.data, '{"commit_hash":null,"health":"ok"}\n')
 
     @freeze_time("2015-03-29")
     def test_health_check_uncached(self):
