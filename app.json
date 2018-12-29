@@ -2,5 +2,7 @@
   "name": "jinageresizer",
   "description": "Image resizing web service",
   "repository": "https://github.com/jinpark/imageresizer",
-  "keywords": ["python", "flask", "image", "resize"]
+  "keywords": ["python", "flask", "image", "resize"],
+
+  "stack": "heroku-18"
 }
